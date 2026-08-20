@@ -70,6 +70,67 @@
             border: 2px solid rgba(83, 78, 58, 0.6);
             border-radius: 0.5em;
         }
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .profile-thumb {
+            border-radius: 50%;
+            border: 2px solid rgb(60, 190, 160);
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .profile-thumb:hover {
+            transform: scale(1.06);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+        }
+        .author-card-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.45);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .author-card {
+            width: 420px;
+            max-width: 90%;
+            background: linear-gradient(145deg, #ffffff, #f6fbf8);
+            border: 2px solid rgb(60, 190, 160);
+            border-radius: 12px;
+            box-shadow: 0 18px 30px rgba(0, 0, 0, 0.28);
+            padding: 22px;
+            position: relative;
+        }
+        .author-card h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: rgb(45, 128, 108);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .author-card p {
+            margin: 8px 0;
+            line-height: 1.45;
+        }
+        .author-card .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            border: none;
+            background-color: rgb(216, 150, 7);
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 1.05em;
+            cursor: pointer;
+        }
+        .author-card .close-btn:hover {
+            background-color: rgb(187, 128, 5);
+        }
         footer {
             position: absolute;
             bottom: 0;
@@ -101,10 +162,21 @@
                 <blog-post
                     v-for="post in posts"
                     :key="post.id"
-                    :post="post">
+                    :post="post"
+                    :profile-src="profilePlaceholder.src"
+                    :on-profile-click="openAuthorCard">
                 </blog-post>
             </section>
         </main>
+
+        <div class="author-card-backdrop" v-if="selectedAuthor" @click.self="closeAuthorCard">
+            <div class="author-card">
+                <button class="close-btn" @click="closeAuthorCard" aria-label="Close">&times;</button>
+                <h3>{{ selectedAuthor }}</h3>
+                <p><strong>Foodie Level:</strong> {{ selectedAuthorInfo.level }}</p>
+                <p><strong>Bio:</strong> {{ selectedAuthorInfo.bio }}</p>
+            </div>
+        </div>
 
         <blog-footer :text="footer.text"></blog-footer>
 
@@ -121,12 +193,23 @@
 
         // Single post component
         Vue.component('blog-post', {
-            props: ['post'],
+            props: ['post', 'profileSrc', 'onProfileClick'],
             template: `
                 <div class="post">
-                    <span class="author">{{ post.author }}</span> &mdash;
-                    <span class="date">{{ post.date }}</span>
-                    <span class="reply">REPLY</span>
+                    <div class="post-header">
+                        <img
+                            class="profile-thumb"
+                            :src="profileSrc"
+                            :alt="post.author + ' profile image'"
+                            width="54"
+                            height="54"
+                            @click="onProfileClick(post.author)">
+                        <div>
+                            <span class="author">{{ post.author }}</span> &mdash;
+                            <span class="date">{{ post.date }}</span>
+                            <span class="reply">REPLY</span>
+                        </div>
+                    </div>
                     <p>{{ post.content }}</p>
                 </div>
             `
@@ -150,8 +233,30 @@
                     alt: 'White Chicken Chili',
                     width: 180
                 },
+                profilePlaceholder: {
+                    src: 'images/profile.png'
+                },
                 footer: {
                     text: 'Copyright FOOD BLOG'
+                },
+                selectedAuthor: '',
+                authorInfo: {
+                    'Brianna': {
+                        level: 'Novice',
+                        bio: 'Food enthusiast. Love to cook and experiment. Into only organic, fat free, sugar free stuffs!'
+                    },
+                    'LINH': {
+                        level: 'Newcomer',
+                        bio: 'Love food! Grew up with meat and potatoes. Recently venture outside my comfort zone. Loving everything I have been eating so far. Thai is my favorite at this time.'
+                    },
+                    'CATHERINE LEONARDO': {
+                        level: 'Mentor',
+                        bio: 'I have to say I never was the adventurous type until 2 years ago. My boyfriend, who is of Japanese background, exposed me to other cultural food and I have never look back since!'
+                    },
+                    'KALI': {
+                        level: 'Novice',
+                        bio: "Food is my passion. So is cooking. I love to experiment and try new things. I have to admit I'm a food whore! Invite me over for dinner and I'll be there!"
+                    }
                 },
                 posts: [
                     {
@@ -179,6 +284,22 @@
                         content: "This recipe is dynamite! My partner usually won't eat beans but he finished the whole pot (darn was hoping to have some for leftovers haha). This is a crowd-pleaser that I am going to add to my regular recipe rotation. Thanks so much, Lisa!"
                     }
                 ]
+            },
+            computed: {
+                selectedAuthorInfo: function() {
+                    return this.authorInfo[this.selectedAuthor] || {
+                        level: 'Unknown',
+                        bio: 'No bio available.'
+                    };
+                }
+            },
+            methods: {
+                openAuthorCard: function(authorName) {
+                    this.selectedAuthor = authorName;
+                },
+                closeAuthorCard: function() {
+                    this.selectedAuthor = '';
+                }
             }
         });
     </script>
